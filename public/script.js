@@ -4,46 +4,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendButton = document.getElementById('sendButton');
     const productsContainer = document.getElementById('productsContainer');
 
-    // Temporary user ID (in a real app, this would come from authentication)
-    const userId = 1;
+    // Configure marked options
+    if (typeof marked !== 'undefined') {
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+    }
+
+    // API base URL
+    const API_BASE_URL = 'http://localhost:3002';
+
+    // Load products on page load
+    loadProducts();
 
     function addMessage(message, isUser = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
         
-        // Format AI response for better readability
-        if (!isUser) {
-            const formattedMessage = message.split('\n').map(line => {
-                if (line.trim().startsWith('-')) {
-                    return `<li>${line.substring(1)}</li>`;
-                }
-                return `<p>${line}</p>`;
-            }).join('');
-            messageDiv.innerHTML = formattedMessage;
-        } else {
+        if (isUser) {
             messageDiv.textContent = message;
+        } else {
+            // Render markdown for bot messages
+            messageDiv.innerHTML = marked.parse(message);
         }
         
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function displayProducts(products) {
-        productsContainer.innerHTML = '';
-        
-        products.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            
-            productCard.innerHTML = `
-                <img src="${product.image_url}" alt="${product.name}">
+    function createProductCard(product) {
+        return `
+            <div class="product-card" data-product-id="${product.id}">
                 <h3>${product.name}</h3>
-                <div class="price">$${product.price}</div>
-                <div class="specs">${product.specs}</div>
-            `;
+                <p class="price">$${product.price.toFixed(2)}</p>
+                <p>${product.category}</p>
+                <p><small>${product.specs}</small></p>
+            </div>
+        `;
+    }
+
+    async function loadProducts() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/products`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const products = await response.json();
             
-            productsContainer.appendChild(productCard);
-        });
+            if (Array.isArray(products) && products.length > 0) {
+                productsContainer.innerHTML = products
+                    .map(product => createProductCard(product))
+                    .join('');
+            } else {
+                productsContainer.innerHTML = '<p>No products available.</p>';
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            productsContainer.innerHTML = '<p>Error loading products. Please try again later.</p>';
+        }
     }
 
     async function sendMessage() {
@@ -57,22 +76,37 @@ document.addEventListener('DOMContentLoaded', () => {
         addMessage(message, true);
 
         try {
-            const response = await fetch('/api/chat', {
+            const response = await fetch(`${API_BASE_URL}/api/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    message: message,
-                    userId: userId
-                })
+                body: JSON.stringify({ message })
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             const data = await response.json();
             
             if (data.success) {
-                // Add AI response to chat
+                // Add AI response to chat with markdown rendering
                 addMessage(data.response);
+                
+                // If the response includes product recommendations, highlight them
+                if (data.products && data.products.length > 0) {
+                    const productElements = document.querySelectorAll('.product-card');
+                    productElements.forEach(el => el.classList.remove('highlighted'));
+                    
+                    data.products.forEach(productId => {
+                        const productElement = document.querySelector(`[data-product-id="${productId}"]`);
+                        if (productElement) {
+                            productElement.classList.add('highlighted');
+                            productElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    });
+                }
             } else {
                 addMessage('Sorry, I encountered an error while processing your request.');
             }
@@ -91,6 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Initial greeting
-    addMessage('Hello! I\'m your personal shopping assistant. How can I help you today?');
+    // Add initial greeting with markdown
+    addMessage("**Hello!** 👋 I'm your AI shopping assistant. I can help you:\n\n- Find products\n- Compare specifications\n- Get recommendations\n- Answer questions about our items\n\nWhat are you looking for today?");
 });

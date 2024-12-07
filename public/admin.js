@@ -13,12 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
             name: document.getElementById('name').value,
             price: parseFloat(document.getElementById('price').value),
             category: document.getElementById('category').value,
-            specs: document.getElementById('specs').value,
-            image_url: document.getElementById('imageUrl').value
+            specs: document.getElementById('specs').value
         };
 
         try {
-            const response = await fetch('http://localhost:3000/api/products', {
+            const response = await fetch('http://localhost:3002/api/products', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -41,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadProducts() {
         try {
-            const response = await fetch('http://localhost:3000/api/products');
+            const response = await fetch('http://localhost:3002/api/products');
             const products = await response.json();
             
             productsList.innerHTML = '';
@@ -60,11 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = 'product-item';
         
         div.innerHTML = `
-            <img src="${product.image_url}" alt="${product.name}">
             <div class="product-info">
                 <h3>${product.name}</h3>
                 <p>$${product.price}</p>
                 <p>${product.category}</p>
+                <p><small>${product.specs}</small></p>
             </div>
             <div class="product-actions">
                 <button class="delete-btn" onclick="deleteProduct(${product.id})">Delete</button>
@@ -82,7 +81,7 @@ async function deleteProduct(id) {
     }
 
     try {
-        const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+        const response = await fetch(`http://localhost:3002/api/products/${id}`, {
             method: 'DELETE'
         });
 

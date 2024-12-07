@@ -5,30 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Shopping Assistant</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Personal Shopping Assistant</h1>
+            <h1>Smart Shopping Assistant</h1>
             <nav>
                 <a href="admin.html" class="admin-link">Admin Panel</a>
             </nav>
         </header>
         
-        <main>
-            <div class="chat-container">
-                <div class="chat-messages" id="chatMessages">
-                    <!-- Chat messages will be inserted here -->
-                </div>
-                
-                <div class="chat-input">
-                    <input type="text" id="userInput" placeholder="Ask for product recommendations...">
-                    <button id="sendButton">Send</button>
+        <main class="main-content">
+            <div class="products-section">
+                <h2>Our Products</h2>
+                <div class="products-grid" id="productsContainer">
+                    <!-- Product recommendations will be displayed here -->
                 </div>
             </div>
-            
-            <div class="products-container" id="productsContainer">
-                <!-- Product recommendations will be displayed here -->
+
+            <div class="chat-section">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h2>AI Shopping Assistant</h2>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Chat messages will be inserted here -->
+                    </div>
+                    
+                    <div class="chat-input">
+                        <input type="text" id="userInput" placeholder="Ask about our products...">
+                        <button id="sendButton">Send</button>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
