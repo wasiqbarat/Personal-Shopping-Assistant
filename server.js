@@ -2,13 +2,10 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const path = require('path');
 const axios = require('axios');
-
 const app = express();
 const port = 3002;
 
-// Middleware
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH']
@@ -100,7 +97,7 @@ async function searchProducts(query) {
                 searchConditions.push('price <= ?');
                 params.push(priceRange.max);
             }
-        }
+        } 
         
         const sql = `
             SELECT DISTINCT * FROM products 
@@ -131,7 +128,6 @@ async function searchProducts(query) {
 
 async function queryOllama(prompt) {
     try {
-        // Search for relevant products
         const relevantProducts = await searchProducts(prompt);
         
         // Create context string with categories summary
@@ -198,6 +194,40 @@ async function queryOllama(prompt) {
             stream: false
         });
 
+        /* 
+        // ================ OpenAI ChatGPT Implementation ================
+        // First, install the OpenAI package:
+        // npm install openai
+
+        // 1. Import OpenAI at the top of your file
+        // const OpenAI = require('openai');
+
+        // 2. Initialize OpenAI client with your API key
+        // const openai = new OpenAI({
+        //     apiKey: 'your-api-key-here', // Store this in environment variables
+        // });
+
+        // 3. Query OpenAI ChatGPT
+        // const response = await openai.chat.completions.create({
+        //     model: "gpt-3.5-turbo", // or "gpt-4" for more advanced capabilities
+        //     messages: [
+        //         {
+        //             role: "system",
+        //             content: "You are a knowledgeable shopping assistant."
+        //         },
+        //         {
+        //             role: "user",
+        //             content: enhancedPrompt
+        //         }
+        //     ],
+        //     temperature: 0.7,
+        //     max_tokens: 500
+        // });
+
+        // 4. Extract the response
+        // return response.choices[0].message.content;
+        */
+
         return response.data.response;
     } catch (error) {
         console.error('Error querying Ollama:', error);
@@ -205,7 +235,7 @@ async function queryOllama(prompt) {
     }
 }
 
-// API Endpoints
+
 app.post('/api/chat', async (req, res) => {
     const { message, userId } = req.body;
     
@@ -324,4 +354,3 @@ process.on('SIGINT', () => {
         });
     });
 });
-
